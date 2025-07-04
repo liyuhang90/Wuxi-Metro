@@ -11,7 +11,7 @@ hero:
     src: /background.svg
     alt: background
   actions:
-    - tmeme: brand
+    - theme: brand
       text: 本站说明
       link: README/index
     - theme: brand
@@ -20,6 +20,9 @@ hero:
     - theme: brand
       text: 站点明细
       link: /station_intro/general_intro/index
+    - theme: brand
+      text: 本站公告
+      link: '#'
 
 features:
   - icon:
@@ -40,3 +43,24 @@ features:
 2025-06-29: 由原 li-web.xyz 拆分而来的独立板块</br>
 </Announcement>
 
+<script setup>
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  const setupAnnouncementButton = () => {
+    const actionButtons = document.querySelectorAll('.VPButton')
+    actionButtons.forEach(button => {
+      if (button.textContent && button.textContent.includes('本站公告')) {
+        button.addEventListener('click', (e) => {
+          e.preventDefault()
+          if (window.showAnnouncement) {
+            window.showAnnouncement()
+          }
+        })
+      }
+    })
+  }
+  
+  setTimeout(setupAnnouncementButton, 100)
+})
+</script>

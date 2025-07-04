@@ -2,15 +2,6 @@
 <template>
   <!-- 当在主页时显示 -->
   <div v-if="isHomePage">
-    <!-- 公告按钮 -->
-    <button
-      class="announcement-btn"
-      @click="showAnnouncement"
-      title="查看公告"
-    >
-      公告
-    </button>
-
     <!-- 公告弹窗 -->
     <div v-if="isVisible" class="announcement-modal">
       <div class="announcement-content">
@@ -49,13 +40,11 @@ const closeAnnouncement = () => {
   isVisible.value = false
 }
 
-// 检查是否需要自动显示公告
 const checkAutoShow = () => {
   if (typeof window !== 'undefined') {
     const lastVersion = localStorage.getItem('lastAnnouncementVersion')
     const currentVersion = props.version
     
-    // 当版本号不同时显示弹窗
     if (lastVersion !== currentVersion) {
       setTimeout(() => {
         showAnnouncement()
@@ -65,34 +54,26 @@ const checkAutoShow = () => {
   }
 }
 
+const exposeShowAnnouncement = () => {
+  if (typeof window !== 'undefined') {
+    window.showAnnouncement = showAnnouncement
+  }
+}
+
 onMounted(() => {
   if (isHomePage.value) {
     checkAutoShow()
+    exposeShowAnnouncement()
   }
+})
+
+defineExpose({
+  showAnnouncement,
+  closeAnnouncement
 })
 </script>
 
 <style scoped>
-.announcement-btn {
-  position: fixed;
-  left: 6px;
-  bottom: 20px;
-  padding: 6px 12px;
-  background-color: #5672CD;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  z-index: 100;
-  font-size: 14px;
-  transition: background-color 0.2s, transform 0.2s;
-}
-
-.announcement-btn:hover {
-  background-color: #2A5CCC;
-  transform: scale(1.02);
-}
-
 .announcement-modal {
   position: fixed;
   top: 0;
@@ -150,7 +131,6 @@ onMounted(() => {
   padding: 0 10px;
 }
 
-/* 确保 markdown 内容样式正确 */
 .markdown-body :deep(h1),
 .markdown-body :deep(h2),
 .markdown-body :deep(h3),
