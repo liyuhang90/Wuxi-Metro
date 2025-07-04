@@ -43,7 +43,7 @@ features:
 import Announcement from '/.vitepress/theme/components/Announcement.vue'
 </script>
 
-<Announcement :version="'0.0.3'">
+<Announcement :version="'0.0.4'">
 2025-07-04: 更改了2号线站点的一处错误。<br>
 2025-06-29: 由原 li-web.xyz 拆分而来的独立板块。
 </Announcement>
