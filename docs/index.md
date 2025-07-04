@@ -22,7 +22,7 @@ hero:
       link: /station_intro/general_intro/index
     - theme: brand
       text: 公告
-      link: '#'
+      link: "#announcement"
 
 features:
   - icon:
@@ -39,29 +39,11 @@ features:
     title: 反馈邮箱
     details: Li-feedback@outlook.com
 ---
-<Announcement :version="'0.0.2'">
-2025-07-04: 更改了2号线站点的一处错误。</br>
+<script setup>
+import Announcement from '/.vitepress/theme/components/Announcement.vue'
+</script>
+
+<Announcement :version="'0.0.3'">
+2025-07-04: 更改了2号线站点的一处错误。<br>
 2025-06-29: 由原 li-web.xyz 拆分而来的独立板块。
 </Announcement>
-
-<script setup>
-import { onMounted } from 'vue'
-
-onMounted(() => {
-  const setupAnnouncementButton = () => {
-    const actionButtons = document.querySelectorAll('.VPButton')
-    actionButtons.forEach(button => {
-      if (button.textContent && button.textContent.includes('本站公告')) {
-        button.addEventListener('click', (e) => {
-          e.preventDefault()
-          if (window.showAnnouncement) {
-            window.showAnnouncement()
-          }
-        })
-      }
-    })
-  }
-  
-  setTimeout(setupAnnouncementButton, 100)
-})
-</script>
