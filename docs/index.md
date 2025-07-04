@@ -40,7 +40,7 @@ features:
     details: Li-feedback@outlook.com
 ---
 <Announcement :version="'0.0.2'">
-2025-07-04: 更改了2号线站点的一处错误。</br>
+2025-07-04: 更改了2号线站点的一处错误。<br>
 2025-06-29: 由原 li-web.xyz 拆分而来的独立板块。
 </Announcement>
 
