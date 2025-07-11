@@ -45,6 +45,7 @@ export default defineConfig({
     },
     nav: [
       { text: '主页', link: '/' },
+      { text: '公告', link: '#announcement' },
     ],
 sidebar: {
      '/line_intro/': metro_introSidebar,

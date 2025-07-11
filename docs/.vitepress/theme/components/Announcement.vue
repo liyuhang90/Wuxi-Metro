@@ -1,17 +1,14 @@
 <!-- components/Announcement.vue -->
 <template>
-  <!-- 当在主页时显示 -->
-  <div v-if="isHomePage">
-    <!-- 公告弹窗 -->
-    <div v-if="isVisible" class="announcement-modal" @click="closeAnnouncement">
-      <div class="announcement-content" @click.stop>
-        <div class="announcement-header">
-          <h3>网站公告</h3>
-          <button class="close-btn" @click="closeAnnouncement">&times;</button>
-        </div>
-        <div class="announcement-body markdown-body">
-          <slot></slot>
-        </div>
+  <!-- 公告弹窗 - 可以在任何页面显示 -->
+  <div v-if="isVisible" class="announcement-modal" @click="closeAnnouncement">
+    <div class="announcement-content" @click.stop>
+      <div class="announcement-header">
+        <h3>网站公告</h3>
+        <button class="close-btn" @click="closeAnnouncement">&times;</button>
+      </div>
+      <div class="announcement-body markdown-body">
+        <slot></slot>
       </div>
     </div>
   </div>
@@ -25,6 +22,10 @@ const props = defineProps({
   version: {
     type: String,
     required: true
+  },
+  autoShow: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -47,9 +48,9 @@ const closeAnnouncement = () => {
   isVisible.value = false
 }
 
-// 检查是否需要自动显示公告
+// 检查是否需要自动显示公告（仅在首页）
 const checkAutoShow = () => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && props.autoShow && isHomePage.value) {
     const lastVersion = localStorage.getItem('lastAnnouncementVersion')
     const currentVersion = props.version
     
@@ -67,58 +68,65 @@ const checkAutoShow = () => {
 
 // 事件处理函数
 const handleAnnouncementClick = (e) => {
-  console.log('按钮被点击了')
+  console.log('公告按钮被点击了')
   e.preventDefault()
   e.stopPropagation()
   showAnnouncement()
 }
 
-// 设置公告按钮点击事件
-const setupAnnouncementButton = () => {
+// 设置导航栏公告按钮点击事件
+const setupNavAnnouncementButton = () => {
   if (typeof window === 'undefined') return
   
   const setupButton = () => {
-    // 更广泛的按钮选择策略
+    // 针对导航栏的按钮选择策略
     const selectors = [
-      'a[href="#announcement"]',
-      'a[href*="announcement"]',
-      'button[data-announcement]',
-      '.VPButton',
-      '.VPHero .VPButton',
-      '.announcement-btn',
-      // 根据文本内容查找按钮
-      'a, button, .btn'
+      // VitePress 导航栏相关选择器
+      '.VPNavBar a[href*="announcement"]',
+      '.VPNavBarMenu a[href*="announcement"]',
+      '.VPNavBarMenuGroup a[href*="announcement"]',
+      '.VPNavBarMenuLink[href*="announcement"]',
+      // 通用导航栏选择器
+      'nav a[href*="announcement"]',
+      'header a[href*="announcement"]',
+      '.nav a[href*="announcement"]',
+      // 根据文本内容查找导航栏中的按钮
+      '.VPNavBar a, .VPNavBarMenu a, nav a, header a'
     ]
     
     let foundButtons = []
     
-    // 先通过选择器查找
+    // 通过选择器查找
     selectors.forEach(selector => {
       const elements = document.querySelectorAll(selector)
       elements.forEach(el => {
+        // 检查链接或按钮文本
         if (el.textContent && 
-            (el.textContent.includes('本站公告') || 
-             el.textContent.includes('公告') || 
-             el.textContent.includes('announcement'))) {
+            (el.textContent.trim().includes('公告') || 
+             el.textContent.trim().includes('announcement') ||
+             el.href && el.href.includes('announcement'))) {
           foundButtons.push(el)
         }
       })
     })
     
-    // 如果没找到，通过文本内容全局搜索
+    // 如果没找到，更广泛地搜索导航区域
     if (foundButtons.length === 0) {
-      const allClickable = document.querySelectorAll('a, button, [role="button"], .btn, [onclick]')
-      allClickable.forEach(el => {
-        if (el.textContent && 
-            (el.textContent.includes('本站公告') || 
-             el.textContent.includes('公告') || 
-             el.textContent.includes('announcement'))) {
-          foundButtons.push(el)
-        }
+      const navAreas = document.querySelectorAll('.VPNavBar, .VPNavBarMenu, nav, header, .nav')
+      navAreas.forEach(navArea => {
+        const allLinks = navArea.querySelectorAll('a, button, [role="button"]')
+        allLinks.forEach(el => {
+          if (el.textContent && 
+              (el.textContent.trim().includes('公告') || 
+               el.textContent.trim().includes('announcement') ||
+               el.href && el.href.includes('announcement'))) {
+            foundButtons.push(el)
+          }
+        })
       })
     }
     
-    console.log('找到的按钮:', foundButtons)
+    console.log('找到的导航栏按钮:', foundButtons)
     
     // 为找到的按钮添加事件监听器
     foundButtons.forEach(button => {
@@ -126,7 +134,7 @@ const setupAnnouncementButton = () => {
       button.removeEventListener('click', handleAnnouncementClick)
       // 添加新的事件监听器
       button.addEventListener('click', handleAnnouncementClick)
-      console.log('为按钮添加了事件监听器:', button)
+      console.log('为导航栏按钮添加了事件监听器:', button)
     })
     
     return foundButtons.length > 0
@@ -135,13 +143,14 @@ const setupAnnouncementButton = () => {
   // 立即尝试设置
   let success = setupButton()
   
-  // 如果首次未成功，延迟重试
+  // 如果首次未成功，延迟重试（因为VitePress可能需要时间渲染导航栏）
   if (!success) {
-    const retryTimes = [100, 500, 1000, 2000]
+    const retryTimes = [100, 300, 500, 1000, 2000]
     retryTimes.forEach(delay => {
       setTimeout(() => {
-        if (!setupButton()) {
-          console.log(`延迟${delay}ms后仍未找到按钮`)
+        const retrySuccess = setupButton()
+        if (!retrySuccess) {
+          console.log(`延迟${delay}ms后仍未找到导航栏按钮`)
         }
       }, delay)
     })
@@ -156,11 +165,16 @@ const setupAnnouncementButton = () => {
     let shouldSetup = false
     mutations.forEach((mutation) => {
       if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-        // 检查是否有新增的可能是按钮的元素
+        // 检查是否有新增的导航栏相关元素
         mutation.addedNodes.forEach(node => {
           if (node.nodeType === Node.ELEMENT_NODE) {
-            const text = node.textContent || ''
-            if (text.includes('本站公告') || text.includes('公告') || text.includes('announcement')) {
+            if (node.matches && (
+                node.matches('.VPNavBar') || 
+                node.matches('.VPNavBarMenu') || 
+                node.matches('nav') ||
+                node.matches('header') ||
+                node.querySelector('.VPNavBar, .VPNavBarMenu, nav, header')
+              )) {
               shouldSetup = true
             }
           }
@@ -180,16 +194,13 @@ const setupAnnouncementButton = () => {
   
   // 监听路由变化
   const handleRouteChange = () => {
-    if (isHomePage.value) {
-      setTimeout(setupButton, 100)
-    }
+    setTimeout(setupButton, 100)
   }
   
   // VitePress 路由变化监听
   if (router && router.onAfterRouteChanged) {
     router.onAfterRouteChanged(handleRouteChange)
     cleanupFunctions.push(() => {
-      // VitePress 可能没有 off 方法，这里做兼容处理
       if (router.offAfterRouteChanged) {
         router.offAfterRouteChanged(handleRouteChange)
       }
@@ -204,7 +215,7 @@ const setupAnnouncementButton = () => {
   }
 }
 
-// 全局暴露函数，便于调试
+// 全局暴露函数，便于调试和外部调用
 const exposeGlobalMethods = () => {
   if (typeof window !== 'undefined') {
     window.showAnnouncement = showAnnouncement
@@ -214,12 +225,16 @@ const exposeGlobalMethods = () => {
 }
 
 onMounted(async () => {
-  console.log('组件挂载，当前路径:', route.path, '是否为首页:', isHomePage.value)
+  console.log('组件挂载，当前路径:', route.path)
   
+  await nextTick()
+  
+  // 设置导航栏按钮点击事件（在所有页面都设置）
+  setupNavAnnouncementButton()
+  
+  // 仅在首页检查是否需要自动显示公告
   if (isHomePage.value) {
-    await nextTick()
     checkAutoShow()
-    setupAnnouncementButton()
   }
   
   // 暴露全局方法便于调试

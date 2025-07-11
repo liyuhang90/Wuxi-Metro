@@ -20,9 +20,6 @@ hero:
     - theme: brand
       text: 站点明细
       link: /station_intro/general_intro/index
-    - theme: brand
-      text: 公告
-      link: "#announcement"
 
 features:
   - icon:
@@ -39,11 +36,3 @@ features:
     title: 反馈邮箱
     details: Li-feedback@outlook.com
 ---
-<script setup>
-import Announcement from '/.vitepress/theme/components/Announcement.vue'
-</script>
-
-<Announcement :version="'0.0.4'">
-2025-07-04: 更改了2号线站点的一处错误。<br>
-2025-06-29: 由原 li-web.xyz 拆分而来的独立板块。
-</Announcement>
