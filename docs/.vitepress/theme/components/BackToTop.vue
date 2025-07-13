@@ -1,3 +1,4 @@
+<!-- BackToTop.vue (优化圆环平滑度) -->
 <template>
   <transition name="fade">
     <div
@@ -9,7 +10,42 @@
       <div class="tooltip-container">
         <span class="tooltip">回到顶部</span>
       </div>
+
+      <!-- 优化后的平滑圆环 -->
       <svg
+        class="progress-ring"
+        viewBox="0 0 44 44"
+        shape-rendering="auto"
+      >
+        <!-- 背景圆 -->
+        <circle
+          cx="22"
+          cy="22"
+          r="18"
+          fill="none"
+          stroke="#1565C0"
+          stroke-width="3"
+          stroke-linecap="round"
+        />
+        <!-- 前景弧 -->
+        <circle
+          cx="22"
+          cy="22"
+          r="18"
+          fill="none"
+          stroke="#42A5F5"
+          stroke-width="3"
+          stroke-linecap="round"
+          :stroke-dasharray="circumference"
+          :stroke-dashoffset="strokeOffset"
+          transform="rotate(-90 22 22)"
+          class="progress-circle"
+        />
+      </svg>
+
+      <!-- 原箭头 -->
+      <svg
+        class="icon"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
       >
@@ -23,23 +59,54 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 const show = ref(false)
+const scrollTop = ref(0)
 
 const scrollToTop = () => {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  })
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+// 圆环参数
+const radius = 18
+const circumference = 2 * Math.PI * radius
+
+// 滚动百分比计算
+const scrollPercent = computed(() => {
+  const doc = document.documentElement
+  const scrollHeight = doc.scrollHeight
+  const clientHeight = doc.clientHeight
+  const scrollableHeight = scrollHeight - clientHeight
+  
+  if (scrollableHeight <= 0) {
+    return 0
+  }
+  
+  return Math.min(scrollTop.value / scrollableHeight, 1)
+})
+
+// 计算 stroke-dashoffset
+const strokeOffset = computed(() => {
+  const progress = scrollPercent.value
+  let offset = circumference * (1 - progress)
+  
+  // 为了平滑闭合，当接近完成时设置一个极小的偏移
+  if (progress >= 0.999) {
+    offset = 0.1
+  }
+  
+  return offset
+})
+
 const handleScroll = () => {
-  show.value = window.pageYOffset > 300
+  scrollTop.value = window.pageYOffset || document.documentElement.scrollTop
+  show.value = scrollTop.value > 300
 }
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  handleScroll() // 初始化
 })
 
 onUnmounted(() => {
@@ -71,12 +138,36 @@ onUnmounted(() => {
   transform: translateY(-2px);
 }
 
-.back-to-top svg {
-  width: 2rem;
-  height: 2rem;
+.progress-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* 添加抗锯齿优化 */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  perspective: 1000;
 }
 
-/* 提示框容器 */
+.progress-circle {
+  transition: stroke-dashoffset 0.1s ease;
+  /* 进一步优化渲染 */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+.icon {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  z-index: 1;
+}
+
 .tooltip-container {
   position: absolute;
   top: -40px;
@@ -87,7 +178,6 @@ onUnmounted(() => {
   visibility: hidden;
 }
 
-/* 提示框本身 */
 .tooltip {
   background-color: rgba(0, 0, 0, 0.7);
   color: white;
@@ -98,7 +188,6 @@ onUnmounted(() => {
   position: relative;
 }
 
-/* 提示框小三角 */
 .tooltip::after {
   content: '';
   position: absolute;
@@ -110,7 +199,6 @@ onUnmounted(() => {
   border-color: rgba(0, 0, 0, 0.7) transparent transparent transparent;
 }
 
-/* 仅在桌面端显示提示框 */
 @media (hover: hover) {
   .back-to-top:hover .tooltip-container {
     opacity: 1;
@@ -119,18 +207,15 @@ onUnmounted(() => {
   }
 }
 
-/* 淡入淡出动画 */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
 
-/* 移动端适配 */
 @media (max-width: 768px) {
   .back-to-top {
     right: 1rem;
@@ -139,12 +224,11 @@ onUnmounted(() => {
     height: 3rem;
   }
 
-  .back-to-top svg {
+  .icon {
     width: 1.5rem;
     height: 1.5rem;
   }
 
-  /* 确保移动端不显示提示框 */
   .tooltip-container {
     display: none;
   }
