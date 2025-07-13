@@ -1,4 +1,4 @@
-<!-- BackToTop.vue (优化圆环平滑度) -->
+<!-- BackToTop.vue (修复Vercel构建失败问题) -->
 <template>
   <transition name="fade">
     <div
@@ -21,23 +21,23 @@
         <circle
           cx="22"
           cy="22"
-          r="18"
+          r="20"
           fill="none"
           stroke="#1565C0"
           stroke-width="3"
-          stroke-linecap="round"
+          opacity="0.3"
         />
-        <!-- 前景弧 -->
+        <!-- 进度圆 -->
         <circle
           cx="22"
           cy="22"
-          r="18"
+          r="20"
           fill="none"
           stroke="#42A5F5"
           stroke-width="3"
           stroke-linecap="round"
           :stroke-dasharray="circumference"
-          :stroke-dashoffset="strokeOffset"
+          :stroke-dashoffset="dashOffset"
           transform="rotate(-90 22 22)"
           class="progress-circle"
         />
@@ -63,54 +63,56 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 const show = ref(false)
 const scrollTop = ref(0)
+// 定义一个 ref 来存储可滚动高度，初始化为 0，防止 SSR 报错
+const scrollableHeight = ref(0)
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// 圆环参数
-const radius = 18
+// 圆环参数 (半径改为20，给stroke更多空间)
+const radius = 20
 const circumference = 2 * Math.PI * radius
 
 // 滚动百分比计算
 const scrollPercent = computed(() => {
-  const doc = document.documentElement
-  const scrollHeight = doc.scrollHeight
-  const clientHeight = doc.clientHeight
-  const scrollableHeight = scrollHeight - clientHeight
-  
-  if (scrollableHeight <= 0) {
+  // 只有当 scrollableHeight 大于 0 时才进行计算
+  if (scrollableHeight.value <= 0) {
     return 0
   }
-  
-  return Math.min(scrollTop.value / scrollableHeight, 1)
+  // 确保百分比在 0 到 1 之间
+  return Math.min(Math.max(scrollTop.value / scrollableHeight.value, 0), 1)
 })
 
-// 计算 stroke-dashoffset
-const strokeOffset = computed(() => {
-  const progress = scrollPercent.value
-  let offset = circumference * (1 - progress)
-  
-  // 为了平滑闭合，当接近完成时设置一个极小的偏移
-  if (progress >= 0.999) {
-    offset = 0.1
+// 计算偏移量
+const dashOffset = computed(() => {
+  // 当进度为0时，偏移量等于圆周长（不显示）
+  // 当进度为1时，偏移量为0（完全显示）
+  // 这里不再需要额外的平滑闭合判断，因为 stroke-linecap="round" 配合精准的 dashOffset 已经足够平滑
+  return circumference * (1 - scrollPercent.value)
+})
+
+// 统一的滚动事件处理函数
+const updateScrollMetrics = () => {
+  // 确保在浏览器环境中才访问 document 和 window
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    const doc = document.documentElement
+    scrollableHeight.value = doc.scrollHeight - doc.clientHeight
+    scrollTop.value = window.pageYOffset || doc.scrollTop || document.body.scrollTop || 0
+    show.value = scrollTop.value > 300
   }
-  
-  return offset
-})
-
-const handleScroll = () => {
-  scrollTop.value = window.pageYOffset || document.documentElement.scrollTop
-  show.value = scrollTop.value > 300
 }
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll, { passive: true })
-  handleScroll() // 初始化
+  // 监听滚动事件
+  window.addEventListener('scroll', updateScrollMetrics, { passive: true })
+  // 首次挂载时更新一次滚动指标，确保初始状态正确
+  updateScrollMetrics()
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+  // 移除事件监听器
+  window.removeEventListener('scroll', updateScrollMetrics)
 })
 </script>
 
@@ -119,8 +121,8 @@ onUnmounted(() => {
   position: fixed;
   right: 2rem;
   bottom: 2rem;
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3rem;
+  height: 3rem;
   background-color: #1976D2;
   border-radius: 50%;
   cursor: pointer;
@@ -145,26 +147,26 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  /* 添加抗锯齿优化 */
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  -webkit-perspective: 1000;
-  perspective: 1000;
+  /* 添加抗锯齿优化，但避免过于激进的 transform，它可能影响某些旧浏览器 */
+  /* -webkit-transform: translateZ(0); */
+  /* transform: translateZ(0); */
+  /* -webkit-backface-visibility: hidden; */
+  /* backface-visibility: hidden; */
+  /* -webkit-perspective: 1000; */
+  /* perspective: 1000; */
 }
 
 .progress-circle {
-  transition: stroke-dashoffset 0.1s ease;
+  transition: stroke-dashoffset 0.2s ease;
   /* 进一步优化渲染 */
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
+  /* -webkit-transform: translateZ(0); */
+  /* transform: translateZ(0); */
 }
 
 .icon {
   position: relative;
-  width: 2rem;
-  height: 2rem;
+  width: 1.75rem;
+  height: 1.75rem;
   z-index: 1;
 }
 
@@ -220,13 +222,13 @@ onUnmounted(() => {
   .back-to-top {
     right: 1rem;
     bottom: 1rem;
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
   }
 
   .icon {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.25rem;
+    height: 1.25rem;
   }
 
   .tooltip-container {
