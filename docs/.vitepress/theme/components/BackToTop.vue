@@ -99,7 +99,7 @@ const updateScrollMetrics = () => {
     const doc = document.documentElement
     scrollableHeight.value = doc.scrollHeight - doc.clientHeight
     scrollTop.value = window.pageYOffset || doc.scrollTop || document.body.scrollTop || 0
-    show.value = scrollTop.value > 300
+    show.value = scrollTop.value > 0
   }
 }
 
@@ -121,8 +121,8 @@ onUnmounted(() => {
   position: fixed;
   right: 2rem;
   bottom: 2rem;
-  width: 3rem;
-  height: 3rem;
+  width: 2.75rem;
+  height: 2.75rem;
   background-color: #1976D2;
   border-radius: 50%;
   cursor: pointer;
@@ -165,8 +165,8 @@ onUnmounted(() => {
 
 .icon {
   position: relative;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.6rem;
+  height: 1.6rem;
   z-index: 1;
 }
 
@@ -222,13 +222,13 @@ onUnmounted(() => {
   .back-to-top {
     right: 1rem;
     bottom: 1rem;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.2rem;
+    height: 2.2rem;
   }
 
   .icon {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.1rem;
+    height: 1.1rem;
   }
 
   .tooltip-container {
