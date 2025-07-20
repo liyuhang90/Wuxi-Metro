@@ -1,4 +1,3 @@
-<!-- BackToTop.vue (修复Vercel构建失败问题) -->
 <template>
   <transition name="fade">
     <div
@@ -15,7 +14,6 @@
       <svg
         class="progress-ring"
         viewBox="0 0 44 44"
-        shape-rendering="auto"
       >
         <!-- 背景圆 -->
         <circle
@@ -23,9 +21,8 @@
           cy="22"
           r="20"
           fill="none"
-          stroke="#1565C0"
           stroke-width="3"
-          opacity="0.3"
+          class="progress-ring__bg"
         />
         <!-- 进度圆 -->
         <circle
@@ -33,17 +30,16 @@
           cy="22"
           r="20"
           fill="none"
-          stroke="#42A5F5"
           stroke-width="3"
           stroke-linecap="round"
           :stroke-dasharray="circumference"
           :stroke-dashoffset="dashOffset"
           transform="rotate(-90 22 22)"
-          class="progress-circle"
+          class="progress-ring__progress"
         />
       </svg>
 
-      <!-- 原箭头 -->
+      <!-- 箭头图标 -->
       <svg
         class="icon"
         xmlns="http://www.w3.org/2000/svg"
@@ -61,58 +57,59 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 
+// --- 响应式状态 ---
 const show = ref(false)
 const scrollTop = ref(0)
-// 定义一个 ref 来存储可滚动高度，初始化为 0，防止 SSR 报错
 const scrollableHeight = ref(0)
 
+// --- SVG 圆环计算 ---
+const radius = 20
+const circumference = 2 * Math.PI * radius
+
+const scrollPercent = computed(() => {
+  if (scrollableHeight.value <= 0) {
+    return 0
+  }
+  return Math.min(scrollTop.value / scrollableHeight.value, 1)
+})
+
+const dashOffset = computed(() => {
+  return circumference * (1 - scrollPercent.value)
+})
+
+// --- 方法 ---
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// 圆环参数 (半径改为20，给stroke更多空间)
-const radius = 20
-const circumference = 2 * Math.PI * radius
-
-// 滚动百分比计算
-const scrollPercent = computed(() => {
-  // 只有当 scrollableHeight 大于 0 时才进行计算
-  if (scrollableHeight.value <= 0) {
-    return 0
-  }
-  // 确保百分比在 0 到 1 之间
-  return Math.min(Math.max(scrollTop.value / scrollableHeight.value, 0), 1)
-})
-
-// 计算偏移量
-const dashOffset = computed(() => {
-  // 当进度为0时，偏移量等于圆周长（不显示）
-  // 当进度为1时，偏移量为0（完全显示）
-  // 这里不再需要额外的平滑闭合判断，因为 stroke-linecap="round" 配合精准的 dashOffset 已经足够平滑
-  return circumference * (1 - scrollPercent.value)
-})
-
-// 统一的滚动事件处理函数
 const updateScrollMetrics = () => {
-  // 确保在浏览器环境中才访问 document 和 window
-  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    const doc = document.documentElement
-    scrollableHeight.value = doc.scrollHeight - doc.clientHeight
-    scrollTop.value = window.pageYOffset || doc.scrollTop || document.body.scrollTop || 0
-    show.value = scrollTop.value > 0
-  }
+  // 确保在浏览器环境中执行
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
+
+  const docEl = document.documentElement
+  // 更新可滚动高度
+  scrollableHeight.value = docEl.scrollHeight - docEl.clientHeight
+  // 更新当前滚动距离
+  scrollTop.value = window.pageYOffset || docEl.scrollTop || document.body.scrollTop
+  // 【变更】恢复显示条件为滚动距离大于0
+  show.value = scrollTop.value > 0
 }
 
+// --- 生命周期钩子 ---
 onMounted(() => {
+  // 首次挂载时更新一次状态
+  updateScrollMetrics()
+
   // 监听滚动事件
   window.addEventListener('scroll', updateScrollMetrics, { passive: true })
-  // 首次挂载时更新一次滚动指标，确保初始状态正确
-  updateScrollMetrics()
+  // **【核心修复】** 监听窗口大小变化事件，以应对移动端浏览器地址栏显隐导致的视口变化
+  window.addEventListener('resize', updateScrollMetrics, { passive: true })
 })
 
 onUnmounted(() => {
-  // 移除事件监听器
+  // 组件卸载时移除事件监听器
   window.removeEventListener('scroll', updateScrollMetrics)
+  window.removeEventListener('resize', updateScrollMetrics)
 })
 </script>
 
@@ -130,14 +127,14 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   color: white;
-  transition: all 0.3s ease;
-  z-index: 100;
-  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.3s, transform 0.3s, opacity 0.3s;
+  z-index: 1000;
+  -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
 }
 
 .back-to-top:hover {
   background-color: #1565C0;
-  transform: translateY(-2px);
+  transform: translateY(-4px);
 }
 
 .progress-ring {
@@ -147,20 +144,16 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  /* 添加抗锯齿优化，但避免过于激进的 transform，它可能影响某些旧浏览器 */
-  /* -webkit-transform: translateZ(0); */
-  /* transform: translateZ(0); */
-  /* -webkit-backface-visibility: hidden; */
-  /* backface-visibility: hidden; */
-  /* -webkit-perspective: 1000; */
-  /* perspective: 1000; */
 }
 
-.progress-circle {
-  transition: stroke-dashoffset 0.2s ease;
-  /* 进一步优化渲染 */
-  /* -webkit-transform: translateZ(0); */
-  /* transform: translateZ(0); */
+.progress-ring__bg {
+  stroke: #1565C0;
+  opacity: 0.3;
+}
+
+.progress-ring__progress {
+  stroke: #42A5F5;
+  transition: stroke-dashoffset 0.2s ease-out;
 }
 
 .icon {
@@ -172,16 +165,17 @@ onUnmounted(() => {
 
 .tooltip-container {
   position: absolute;
-  top: -40px;
+  bottom: 120%; /* 调整位置，避免与 transform 冲突 */
   left: 50%;
   transform: translateX(-50%);
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .tooltip {
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.75);
   color: white;
   padding: 6px 12px;
   border-radius: 4px;
@@ -193,19 +187,19 @@ onUnmounted(() => {
 .tooltip::after {
   content: '';
   position: absolute;
-  bottom: -6px;
+  top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  border-width: 6px 6px 0 6px;
+  border-width: 6px;
   border-style: solid;
-  border-color: rgba(0, 0, 0, 0.7) transparent transparent transparent;
+  border-color: rgba(0, 0, 0, 0.75) transparent transparent transparent;
 }
 
-@media (hover: hover) {
+/* 使用 (hover: hover) 来确保只在支持悬停的设备上显示 tooltip */
+@media (hover: hover) and (min-width: 769px) {
   .back-to-top:hover .tooltip-container {
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
   }
 }
 
@@ -218,17 +212,21 @@ onUnmounted(() => {
   opacity: 0;
 }
 
+/* 移动端适配 */
 @media (max-width: 768px) {
   .back-to-top {
-    right: 1rem;
-    bottom: 1rem;
-    width: 2.2rem;
-    height: 2.2rem;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .back-to-top:hover {
+    transform: none; /* 移动端禁用悬停位移效果 */
   }
 
   .icon {
-    width: 1.1rem;
-    height: 1.1rem;
+    width: 1.25rem;
+    height: 1.25rem;
   }
 
   .tooltip-container {
