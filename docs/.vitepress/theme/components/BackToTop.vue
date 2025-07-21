@@ -83,37 +83,37 @@ const scrollToTop = () => {
 }
 
 const updateScrollMetrics = () => {
-  // 确保在浏览器环境中执行
   if (typeof window === 'undefined' || typeof document === 'undefined') return
 
   const docEl = document.documentElement
-  // 更新可滚动高度
   scrollableHeight.value = docEl.scrollHeight - docEl.clientHeight
-  // 更新当前滚动距离
   scrollTop.value = window.pageYOffset || docEl.scrollTop || document.body.scrollTop
-  // 【变更】恢复显示条件为滚动距离大于0
   show.value = scrollTop.value > 0
 }
 
 // --- 生命周期钩子 ---
 onMounted(() => {
-  // 首次挂载时更新一次状态
+  // 初始挂载时计算一次，提供一个基础值
   updateScrollMetrics()
 
-  // 监听滚动事件
+  // 监听滚动
   window.addEventListener('scroll', updateScrollMetrics, { passive: true })
-  // **【核心修复】** 监听窗口大小变化事件，以应对移动端浏览器地址栏显隐导致的视口变化
+  // 监听窗口大小变化（修复移动端地址栏显隐问题）
   window.addEventListener('resize', updateScrollMetrics, { passive: true })
+  // **【核心修复】** 监听页面所有资源加载完成事件，以确保获取到包含图片在内的最终页面高度
+  window.addEventListener('load', updateScrollMetrics, { passive: true })
 })
 
 onUnmounted(() => {
-  // 组件卸载时移除事件监听器
+  // 组件卸载时移除所有事件监听器
   window.removeEventListener('scroll', updateScrollMetrics)
   window.removeEventListener('resize', updateScrollMetrics)
+  window.removeEventListener('load', updateScrollMetrics)
 })
 </script>
 
 <style scoped>
+/* 样式部分保持不变 */
 .back-to-top {
   position: fixed;
   right: 2rem;
@@ -129,7 +129,7 @@ onUnmounted(() => {
   color: white;
   transition: background-color 0.3s, transform 0.3s, opacity 0.3s;
   z-index: 1000;
-  -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .back-to-top:hover {
@@ -165,7 +165,7 @@ onUnmounted(() => {
 
 .tooltip-container {
   position: absolute;
-  bottom: 120%; /* 调整位置，避免与 transform 冲突 */
+  bottom: 120%;
   left: 50%;
   transform: translateX(-50%);
   pointer-events: none;
@@ -195,7 +195,6 @@ onUnmounted(() => {
   border-color: rgba(0, 0, 0, 0.75) transparent transparent transparent;
 }
 
-/* 使用 (hover: hover) 来确保只在支持悬停的设备上显示 tooltip */
 @media (hover: hover) and (min-width: 769px) {
   .back-to-top:hover .tooltip-container {
     opacity: 1;
@@ -212,7 +211,6 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* 移动端适配 */
 @media (max-width: 768px) {
   .back-to-top {
     right: 1.25rem;
@@ -221,7 +219,7 @@ onUnmounted(() => {
     height: 2.5rem;
   }
   .back-to-top:hover {
-    transform: none; /* 移动端禁用悬停位移效果 */
+    transform: none;
   }
 
   .icon {
