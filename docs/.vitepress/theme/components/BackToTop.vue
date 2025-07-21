@@ -70,7 +70,8 @@ const scrollPercent = computed(() => {
   if (scrollableHeight.value <= 0) {
     return 0
   }
-  return Math.min(scrollTop.value / scrollableHeight.value, 1)
+  // 增加一个微小的容差值，避免因像素计算偏差导致无法达到100%
+  return Math.min(scrollTop.value / scrollableHeight.value + 0.01, 1)
 })
 
 const dashOffset = computed(() => {
@@ -82,6 +83,7 @@ const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+// 统一的指标更新函数
 const updateScrollMetrics = () => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return
 
@@ -91,24 +93,52 @@ const updateScrollMetrics = () => {
   show.value = scrollTop.value > 0
 }
 
+// 仅用于更新滚动位置的轻量级函数
+const updateScrollTop = () => {
+  if (typeof window === 'undefined') return
+  scrollTop.value = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+  show.value = scrollTop.value > 0
+}
+
+// 【核心】定义一个变量来持有 ResizeObserver 实例
+let resizeObserver = null
+
 // --- 生命周期钩子 ---
 onMounted(() => {
-  // 初始挂载时计算一次，提供一个基础值
-  updateScrollMetrics()
+  // 确保在浏览器环境中执行
+  if (typeof window === 'undefined') return
+  
+  // 监听滚动，只更新 scrollTop
+  window.addEventListener('scroll', updateScrollTop, { passive: true })
 
-  // 监听滚动
-  window.addEventListener('scroll', updateScrollMetrics, { passive: true })
-  // 监听窗口大小变化（修复移动端地址栏显隐问题）
-  window.addEventListener('resize', updateScrollMetrics, { passive: true })
-  // **【核心修复】** 监听页面所有资源加载完成事件，以确保获取到包含图片在内的最终页面高度
-  window.addEventListener('load', updateScrollMetrics, { passive: true })
+  // **【最终解决方案】** 使用 ResizeObserver 监听文档体的大小变化
+  // 这是最稳健的方法，可以捕捉到图片加载、异步组件渲染等任何引起页面高度变化的情况
+  if ('ResizeObserver' in window) {
+    resizeObserver = new ResizeObserver(updateScrollMetrics)
+    resizeObserver.observe(document.body)
+  } else {
+    // 为不支持 ResizeObserver 的旧浏览器提供降级方案
+    window.addEventListener('resize', updateScrollMetrics, { passive: true })
+    window.addEventListener('load', updateScrollMetrics, { passive: true })
+  }
+
+  // 初始调用一次以设置初始状态
+  updateScrollMetrics()
 })
 
 onUnmounted(() => {
-  // 组件卸载时移除所有事件监听器
-  window.removeEventListener('scroll', updateScrollMetrics)
-  window.removeEventListener('resize', updateScrollMetrics)
-  window.removeEventListener('load', updateScrollMetrics)
+  if (typeof window === 'undefined') return
+
+  window.removeEventListener('scroll', updateScrollTop)
+  
+  // 断开 ResizeObserver 的连接
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+  } else {
+    // 移除降级方案的监听器
+    window.removeEventListener('resize', updateScrollMetrics)
+    window.removeEventListener('load', updateScrollMetrics)
+  }
 })
 </script>
 
