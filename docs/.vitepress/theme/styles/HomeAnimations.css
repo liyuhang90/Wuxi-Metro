@@ -1,55 +1,53 @@
 /* .vitepress/theme/styles/HomeAnimations.css */
-
-/* 为动画目标元素设置初始状态 */
-body.animate-on-load .VPHero .VPImage {
-  opacity: 0; /* 图片只设置透明度，不改变位置 */
-}
-
-body.animate-on-load .VPHero .name,
-body.animate-on-load .VPHero .text, 
-body.animate-on-load .VPHero .tagline {
+/* 预防闪现：只有当准备播放动画时才隐藏元素 */
+body[data-path="/"].animate-on-load .VPHero .VPImage,
+body[data-path="/"].animate-on-load .VPHero .name,
+body[data-path="/"].animate-on-load .VPHero .text,
+body[data-path="/"].animate-on-load .VPHero .tagline,
+body[data-path="/"].animate-on-load .VPHero .actions,
+body[data-path="/"].animate-on-load .VPFeatures .VPFeature {
   opacity: 0;
+}
+/* 为打字机效果预设样式（只在动画期间） */
+body[data-path="/"].animate-on-load .VPHero .name,
+body[data-path="/"].animate-on-load .VPHero .text, 
+body[data-path="/"].animate-on-load .VPHero .tagline {
   overflow: hidden;
   white-space: nowrap;
-  width: 0; /* 打字机效果：从宽度0开始 */
+  width: 0;
 }
-
-body.animate-on-load .VPHero .actions,
-body.animate-on-load .VPFeatures .VPFeature {
-  opacity: 0;
-  transform: translateY(20px); /* 按钮和功能卡片用位移动画 */
+/* 为浮入效果预设位移（只在动画期间） */
+body[data-path="/"].animate-on-load .VPHero .actions,
+body[data-path="/"].animate-on-load .VPFeatures .VPFeature {
+  transform: translateY(20px);
 }
-
 /* 图片纯淡入动画 */
-body.animate-on-load .VPHero .VPImage {
+body[data-path="/"].animate-on-load .VPHero .VPImage {
   animation: fadeInOnly 0.8s ease-out 0.1s forwards;
 }
-
 /* 文字平滑打字机动画 */
-body.animate-on-load .VPHero .name {
+body[data-path="/"].animate-on-load .VPHero .name {
   animation: smoothTypewriter 0.8s ease-out 0.3s forwards;
 }
-body.animate-on-load .VPHero .text {
+body[data-path="/"].animate-on-load .VPHero .text {
   animation: smoothTypewriter 1.0s ease-out 1.2s forwards;
 }
-body.animate-on-load .VPHero .tagline {
+body[data-path="/"].animate-on-load .VPHero .tagline {
   animation: smoothTypewriter 0.8s ease-out 2.3s forwards;
 }
-
 /* 按钮和功能卡片动画 */
-body.animate-on-load .VPHero .actions {
+body[data-path="/"].animate-on-load .VPHero .actions {
   animation: slideUpFade 0.6s ease-out 3.2s forwards;
 }
-body.animate-on-load .VPFeatures .VPFeature:nth-child(1) {
+body[data-path="/"].animate-on-load .VPFeatures .VPFeature:nth-child(1) {
   animation: slideUpFade 0.6s ease-out 3.5s forwards;
 }
-body.animate-on-load .VPFeatures .VPFeature:nth-child(2) {
+body[data-path="/"].animate-on-load .VPFeatures .VPFeature:nth-child(2) {
   animation: slideUpFade 0.6s ease-out 3.7s forwards;
 }
-body.animate-on-load .VPFeatures .VPFeature:nth-child(3) {
+body[data-path="/"].animate-on-load .VPFeatures .VPFeature:nth-child(3) {
   animation: slideUpFade 0.6s ease-out 3.9s forwards;
 }
-
 /* 动画关键帧定义 */
 @keyframes fadeInOnly {
   from {
@@ -59,7 +57,6 @@ body.animate-on-load .VPFeatures .VPFeature:nth-child(3) {
     opacity: 1;
   }
 }
-
 @keyframes slideUpFade {
   from {
     opacity: 0;
@@ -70,7 +67,6 @@ body.animate-on-load .VPFeatures .VPFeature:nth-child(3) {
     transform: translateY(0);
   }
 }
-
 @keyframes smoothTypewriter {
   from {
     opacity: 0;
