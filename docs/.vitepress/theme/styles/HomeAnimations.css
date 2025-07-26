@@ -1,0 +1,100 @@
+/* .vitepress/theme/styles/HomeAnimations.css */
+
+/* 准备动画状态 - 确保元素在动画开始前处于正确初始状态 */
+body.prepare-animation .VPHero .VPImage,
+body.prepare-animation .VPHero .name,
+body.prepare-animation .VPHero .text, 
+body.prepare-animation .VPHero .tagline,
+body.prepare-animation .VPHero .actions,
+body.prepare-animation .VPFeatures .VPFeature {
+  /* 隐藏元素直到动画开始 */
+  visibility: hidden;
+}
+
+/* 为动画目标元素设置初始状态 */
+body.animate-on-load .VPHero .VPImage {
+  opacity: 0; /* 图片只设置透明度，不改变位置 */
+  visibility: visible;
+}
+
+body.animate-on-load .VPHero .name,
+body.animate-on-load .VPHero .text, 
+body.animate-on-load .VPHero .tagline {
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0; /* 打字机效果：从宽度0开始 */
+  visibility: visible;
+}
+
+body.animate-on-load .VPHero .actions,
+body.animate-on-load .VPFeatures .VPFeature {
+  opacity: 0;
+  transform: translateY(20px); /* 按钮和功能卡片用位移动画 */
+  visibility: visible;
+}
+
+/* 图片纯淡入动画 */
+body.animate-on-load .VPHero .VPImage {
+  animation: fadeInOnly 0.8s ease-out 0.1s forwards;
+}
+
+/* 文字平滑打字机动画 */
+body.animate-on-load .VPHero .name {
+  animation: smoothTypewriter 0.8s ease-out 0.3s forwards;
+}
+body.animate-on-load .VPHero .text {
+  animation: smoothTypewriter 1.0s ease-out 1.2s forwards;
+}
+body.animate-on-load .VPHero .tagline {
+  animation: smoothTypewriter 0.8s ease-out 2.3s forwards;
+}
+
+/* 按钮和功能卡片动画 */
+body.animate-on-load .VPHero .actions {
+  animation: slideUpFade 0.6s ease-out 3.2s forwards;
+}
+body.animate-on-load .VPFeatures .VPFeature:nth-child(1) {
+  animation: slideUpFade 0.6s ease-out 3.5s forwards;
+}
+body.animate-on-load .VPFeatures .VPFeature:nth-child(2) {
+  animation: slideUpFade 0.6s ease-out 3.7s forwards;
+}
+body.animate-on-load .VPFeatures .VPFeature:nth-child(3) {
+  animation: slideUpFade 0.6s ease-out 3.9s forwards;
+}
+
+/* 动画关键帧定义 */
+@keyframes fadeInOnly {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes smoothTypewriter {
+  from {
+    opacity: 0;
+    width: 0;
+  }
+  1% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    width: 100%;
+  }
+}
