@@ -7,6 +7,7 @@ const route = useRoute();
 
 const playAnimation = () => {
   console.log('开始播放首页动画');
+<<<<<<< HEAD
   // 先确保添加动画前的准备状态
   document.body.classList.add('prepare-animation');
   
@@ -25,6 +26,16 @@ const playAnimation = () => {
       }, 4600); // 4.6秒，确保所有动画完成
     }, 50); // 添加50ms的延迟确保CSS正确应用
   });
+=======
+  document.body.classList.add('animate-on-load');
+  
+  // 最后一个动画在3.9s开始，持续0.6s，总时长4.5s
+  setTimeout(() => {
+    console.log('动画结束，触发事件');
+    window.dispatchEvent(new CustomEvent('homeAnimationEnd'));
+    document.body.classList.remove('animate-on-load');
+  }, 4600); // 4.6秒，确保所有动画完成
+>>>>>>> 163a8d2a85c205bc78477670807d250ce8d590ff
 };
 
 const triggerEventOnly = () => {
@@ -34,12 +45,18 @@ const triggerEventOnly = () => {
 
 onMounted(() => {
   if (route.path === '/') {
+<<<<<<< HEAD
     // 延迟执行动画，确保所有资源加载完成
     setTimeout(() => {
       nextTick(() => {
         playAnimation();
       });
     }, 100);
+=======
+    nextTick(() => {
+      playAnimation();
+    });
+>>>>>>> 163a8d2a85c205bc78477670807d250ce8d590ff
   }
 });
 
@@ -51,4 +68,8 @@ watch(
     }
   }
 );
+<<<<<<< HEAD
 </script>
+=======
+</script>
+>>>>>>> 163a8d2a85c205bc78477670807d250ce8d590ff
