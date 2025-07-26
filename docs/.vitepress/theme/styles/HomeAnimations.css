@@ -1,20 +1,8 @@
 /* .vitepress/theme/styles/HomeAnimations.css */
 
-/* 准备动画状态 - 确保元素在动画开始前处于正确初始状态 */
-body.prepare-animation .VPHero .VPImage,
-body.prepare-animation .VPHero .name,
-body.prepare-animation .VPHero .text, 
-body.prepare-animation .VPHero .tagline,
-body.prepare-animation .VPHero .actions,
-body.prepare-animation .VPFeatures .VPFeature {
-  /* 隐藏元素直到动画开始 */
-  visibility: hidden;
-}
-
 /* 为动画目标元素设置初始状态 */
 body.animate-on-load .VPHero .VPImage {
   opacity: 0; /* 图片只设置透明度，不改变位置 */
-  visibility: visible;
 }
 
 body.animate-on-load .VPHero .name,
@@ -24,14 +12,12 @@ body.animate-on-load .VPHero .tagline {
   overflow: hidden;
   white-space: nowrap;
   width: 0; /* 打字机效果：从宽度0开始 */
-  visibility: visible;
 }
 
 body.animate-on-load .VPHero .actions,
 body.animate-on-load .VPFeatures .VPFeature {
   opacity: 0;
   transform: translateY(20px); /* 按钮和功能卡片用位移动画 */
-  visibility: visible;
 }
 
 /* 图片纯淡入动画 */

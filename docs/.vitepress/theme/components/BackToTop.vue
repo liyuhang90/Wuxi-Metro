@@ -103,9 +103,6 @@ const updateScrollTop = () => {
 // 【核心】定义一个变量来持有 ResizeObserver 实例
 let resizeObserver = null
 
-// 图片加载监听器
-let imageLoadObserver = null
-
 // --- 生命周期钩子 ---
 onMounted(() => {
   // 确保在浏览器环境中执行
@@ -125,31 +122,6 @@ onMounted(() => {
     window.addEventListener('load', updateScrollMetrics, { passive: true })
   }
 
-  // 添加图片加载监听，解决移动端图片加载完成后高度变化问题
-  const handleImageLoad = () => {
-    // 图片加载完成后更新滚动指标
-    setTimeout(updateScrollMetrics, 100)
-  }
-
-  // 使用事件委托监听所有图片的加载事件
-  document.addEventListener('load', handleImageLoad, true)
-  
-  // 同时监听可能的错误加载
-  document.addEventListener('error', handleImageLoad, true)
-  
-  // 对于已经存在的图片，检查它们是否已经加载完成
-  const images = document.querySelectorAll('img')
-  images.forEach(img => {
-    if (img.complete) {
-      // 图片已经加载完成，立即更新
-      updateScrollMetrics()
-    } else {
-      // 图片尚未加载完成，等待加载
-      img.addEventListener('load', updateScrollMetrics)
-      img.addEventListener('error', updateScrollMetrics)
-    }
-  })
-
   // 初始调用一次以设置初始状态
   updateScrollMetrics()
 })
@@ -167,10 +139,6 @@ onUnmounted(() => {
     window.removeEventListener('resize', updateScrollMetrics)
     window.removeEventListener('load', updateScrollMetrics)
   }
-  
-  // 移除图片加载监听
-  document.removeEventListener('load', handleImageLoad, true)
-  document.removeEventListener('error', handleImageLoad, true)
 })
 </script>
 
