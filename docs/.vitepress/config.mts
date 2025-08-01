@@ -6,6 +6,7 @@ export default defineConfig({
   description: "由个人整理的非官方无锡地铁信息合集",
   cleanUrls: true,
   lastUpdated: true,
+  appearance: "dark",
   head: [
     ['link', { rel: 'icon', href: '/logo.svg' }],
     ['meta', { name: 'robots', content: 'index, follow' }], 
