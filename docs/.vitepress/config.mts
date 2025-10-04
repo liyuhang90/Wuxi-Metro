@@ -6,7 +6,7 @@ export default defineConfig({
   description: "由个人整理的非官方无锡地铁信息合集",
   cleanUrls: true,
   lastUpdated: true,
-  appearance: "dark",
+  appearance: "force-auto",
   head: [
     ['link', { rel: 'icon', href: '/logo.svg' }],
     ['meta', { name: 'robots', content: 'index, follow' }], 
@@ -63,5 +63,6 @@ footer: { copyright: 'Copyright © 2025, Li' },
     darkModeSwitchLabel: '深浅模式',
     lightModeSwitchTitle: '切换到浅色模式',
     darkModeSwitchTitle: '切换到深色模式',
+    
   }
 })
