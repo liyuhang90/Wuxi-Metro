@@ -20,7 +20,7 @@ export default {
       'layout-bottom': () => [
         h(BackToTop),
         h(Announcement, { 
-          version: '1.0.0', 
+          version: '1.0.1', 
           autoShow: true 
         }, {
           // 公告内容作为插槽
