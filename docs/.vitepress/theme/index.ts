@@ -20,12 +20,13 @@ export default {
       'layout-bottom': () => [
         h(BackToTop),
         h(Announcement, { 
-          version: '1.0.1', 
+          version: '1.1.0', 
           autoShow: true 
         }, {
           // 公告内容作为插槽
           default: () => [
             h('ul', [
+              h('li', '2025-10-05: 修复了移动端无法打开公告栏的问题。'),
               h('li', '2025-10-04: 更新了S1线的站点明细。'),
               h('li', '2025-09-28: 更改了2号线站点的一处错误。'),
               h('li', '2025-07-22: 主页添加动画效果。'),

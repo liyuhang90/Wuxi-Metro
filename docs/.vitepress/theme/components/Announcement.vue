@@ -1,7 +1,7 @@
 <!-- components/Announcement.vue -->
 <template>
   <!-- 公告弹窗 - 可以在任何页面显示 -->
-  <div v-if="isVisible" class="announcement-modal" @click="closeAnnouncement">
+  <div v-if="isVisible" class="announcement-modal" @click="handleModalClick">
     <div class="announcement-content" @click.stop>
       <div class="announcement-header">
         <h3>网站公告</h3>
@@ -33,27 +33,46 @@ const route = useRoute()
 const router = useRouter()
 const isHomePage = computed(() => route.path === '/')
 const isVisible = ref(false)
+const isOpening = ref(false) // 新增：标记是否正在打开
 
 let observer = null
 const cleanupFunctions = []
 
 const showAnnouncement = () => {
+  console.log('showAnnouncement 被调用')
+  isOpening.value = true
   isVisible.value = true
+  
+  // 200ms 后解除打开状态标记
+  setTimeout(() => {
+    isOpening.value = false
+  }, 200)
 }
 
 const closeAnnouncement = () => {
+  console.log('closeAnnouncement 被调用')
   isVisible.value = false
+  isOpening.value = false
 }
 
-// 检查是否需要自动显示公告（仅在首页）
+// 处理模态框背景点击
+const handleModalClick = () => {
+  // 如果正在打开过程中，忽略点击
+  if (isOpening.value) {
+    console.log('正在打开中，忽略背景点击')
+    return
+  }
+  closeAnnouncement()
+}
+
+// 检查是否需要自动显示公告(仅在首页)
 const checkAutoShow = () => {
-  // 确保在浏览器环境中执行
   if (typeof window === 'undefined' || !props.autoShow || !isHomePage.value) {
     return
   }
 
   const onAnimationEnd = () => {
-    console.log('接收到 homeAnimationEnd 事件，准备检查公告版本。');
+    console.log('接收到 homeAnimationEnd 事件,准备检查公告版本。');
     const lastVersion = localStorage.getItem('lastAnnouncementVersion')
     const currentVersion = props.version
     
@@ -61,96 +80,163 @@ const checkAutoShow = () => {
       showAnnouncement()
       localStorage.setItem('lastAnnouncementVersion', currentVersion)
     }
-    // 任务完成后移除监听器，避免内存泄漏
     window.removeEventListener('homeAnimationEnd', onAnimationEnd)
   }
 
-  // 添加事件监听器，等待主页动画完成的信号
   window.addEventListener('homeAnimationEnd', onAnimationEnd)
 
-  // 将移除监听器的操作添加到清理函数中
   cleanupFunctions.push(() => {
     window.removeEventListener('homeAnimationEnd', onAnimationEnd)
   })
 }
 
 const handleAnnouncementClick = (e) => {
+  console.log('公告按钮被点击', e)
   e.preventDefault()
   e.stopPropagation()
-  showAnnouncement()
+  
+  if (e.stopImmediatePropagation) {
+    e.stopImmediatePropagation()
+  }
+  
+  // 延迟执行，确保事件处理完成
+  requestAnimationFrame(() => {
+    showAnnouncement()
+  })
+  
+  return false
 }
 
 // 设置导航栏公告按钮点击事件
 const setupNavAnnouncementButton = () => {
   if (typeof window === 'undefined') return
 
-  // 使用更稳定、更具体的选择器，并增加文本内容检查
-  const navLinks = document.querySelectorAll('.VPNavBarMenu a.VPNavBarMenuLink')
-  let announcementButton = null;
+  console.log('开始设置公告按钮...')
 
-  navLinks.forEach(link => {
-    if (link.textContent && link.textContent.trim().includes('公告')) {
-      announcementButton = link;
-    }
-  });
+  // 移除所有旧的事件监听器
+  const oldButtons = document.querySelectorAll('[data-announcement-button]')
+  oldButtons.forEach(btn => {
+    const clone = btn.cloneNode(true)
+    btn.parentNode?.replaceChild(clone, btn)
+  })
 
-  if (announcementButton) {
-    console.log('成功找到公告按钮:', announcementButton);
-    // 先移除旧的监听器，再添加新的，防止重复绑定
-    announcementButton.removeEventListener('click', handleAnnouncementClick);
-    announcementButton.addEventListener('click', handleAnnouncementClick);
+  let announcementButtons = []
+  
+  // 查找所有可能的公告按钮
+  const allLinks = document.querySelectorAll('a, .link, [role="link"]')
+  
+  allLinks.forEach(link => {
+    const text = link.textContent?.trim() || ''
+    const href = link.getAttribute('href') || ''
     
-    // 将移除操作添加到清理函数
-    cleanupFunctions.push(() => {
-      announcementButton.removeEventListener('click', handleAnnouncementClick);
-    });
-  } else {
-    // 如果在主导航没找到，尝试在移动端菜单中查找
-    const mobileMenuLinks = document.querySelectorAll('.VPNavBarMenu a[href]')
-    mobileMenuLinks.forEach(link => {
-        if (link.textContent && link.textContent.trim().includes('公告')) {
-            announcementButton = link;
-        }
-    });
-
-    if (announcementButton) {
-        console.log('成功找到移动端公告按钮:', announcementButton);
-        announcementButton.removeEventListener('click', handleAnnouncementClick);
-        announcementButton.addEventListener('click', handleAnnouncementClick);
-        cleanupFunctions.push(() => {
-            announcementButton.removeEventListener('click', handleAnnouncementClick);
-        });
-    } else {
-        console.warn('未在导航栏或移动菜单中找到“公告”按钮。');
+    // 查找包含"公告"文本的链接
+    if (text.includes('公告') || text.includes('announcement')) {
+      console.log('找到公告按钮:', link, '文本:', text)
+      announcementButtons.push(link)
     }
+  })
+
+  if (announcementButtons.length === 0) {
+    console.warn('未找到任何公告按钮')
+    return
   }
+
+  // 为所有找到的按钮绑定事件
+  announcementButtons.forEach(button => {
+    button.setAttribute('data-announcement-button', 'true')
+    
+    // 使用多种方式确保事件被捕获
+    button.addEventListener('click', handleAnnouncementClick, { capture: true })
+    button.addEventListener('touchstart', handleAnnouncementClick, { capture: true, passive: false })
+    
+    // 额外保险：使用 onclick
+    button.onclick = (e) => {
+      handleAnnouncementClick(e)
+      return false
+    }
+    
+    console.log('已为按钮绑定事件:', button)
+    
+    cleanupFunctions.push(() => {
+      button.removeEventListener('click', handleAnnouncementClick, { capture: true })
+      button.removeEventListener('touchstart', handleAnnouncementClick, { capture: true })
+      button.onclick = null
+    })
+  })
+}
+
+// 使用 MutationObserver 监听 DOM 变化
+const setupMutationObserver = () => {
+  if (typeof window === 'undefined') return
+
+  let timeoutId = null
+
+  observer = new MutationObserver((mutations) => {
+    // 防抖处理
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+    
+    timeoutId = setTimeout(() => {
+      console.log('DOM 发生变化，重新设置按钮')
+      setupNavAnnouncementButton()
+    }, 300)
+  })
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  })
+
+  cleanupFunctions.push(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+    if (observer) {
+      observer.disconnect()
+    }
+  })
 }
 
 onMounted(() => {
-  // nextTick 确保 DOM 已经渲染完毕
+  console.log('Announcement 组件已挂载')
+  
   nextTick(() => {
     setupNavAnnouncementButton()
+    setupMutationObserver()
     checkAutoShow()
-  });
+  })
 
-  // 监听 VitePress 路由变化，在导航后重新设置按钮事件
+  // 监听路由变化
   if (router.onAfterRouteChanged) {
     const cleanup = router.onAfterRouteChanged((to) => {
-      nextTick(() => {
+      console.log('路由变化:', to)
+      setTimeout(() => {
         setupNavAnnouncementButton()
-        // 只有在目标路径是主页时才再次检查自动显示
         if (to === '/') {
           checkAutoShow()
         }
-      })
+      }, 100)
     })
     cleanupFunctions.push(cleanup)
   }
+
+  // 多次延迟检查，确保捕获到所有情况
+  const delays = [100, 500, 1000]
+  delays.forEach(delay => {
+    setTimeout(() => {
+      setupNavAnnouncementButton()
+    }, delay)
+  })
 })
 
 onUnmounted(() => {
-  // 组件卸载时，执行所有清理工作
-  cleanupFunctions.forEach(cleanup => cleanup())
+  console.log('Announcement 组件卸载')
+  cleanupFunctions.forEach(cleanup => {
+    if (typeof cleanup === 'function') {
+      cleanup()
+    }
+  })
   if (observer) {
     observer.disconnect()
   }
@@ -175,6 +261,16 @@ defineExpose({
   align-items: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .announcement-content {
@@ -187,6 +283,18 @@ defineExpose({
   overflow-y: auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--vp-c-divider-light);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .announcement-header {
