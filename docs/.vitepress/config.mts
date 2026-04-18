@@ -51,7 +51,7 @@ sidebar: {
      '/line_intro/': metro_introSidebar,
      '/station_intro/': station_introSidebar,
     },
-footer: { copyright: 'Copyright © 2025, Li' },
+footer: { copyright: 'Copyright © 2026, Li' },
     lastUpdated: {
       text: '最后更新于',
       formatOptions: {
