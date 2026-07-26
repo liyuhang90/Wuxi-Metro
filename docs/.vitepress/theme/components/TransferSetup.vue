@@ -8,7 +8,7 @@ import { onMounted, watch, nextTick, ref } from 'vue'
 import TransferModal from './TransferModal.vue'
 
 // ⭐ 已开通线路白名单（整条或部分开通的都算，具体站点用下面的黑名单细化）
-const AVAILABLE_LINES = ['1', '2', '3', '4']
+const AVAILABLE_LINES = ['1', '2', '3', '4',"s1"]
 
 // ⭐ 未开通站点黑名单：key = 线路号，value = 该线路上尚未开通的换乘站名称（关键字）
 // 用于处理"分段开通"的线路，例如 4 号线部分站点还在建设
@@ -76,10 +76,47 @@ function setupTransfer() {
       h2.style.cursor = 'pointer'
       h2.title = '点击选择换乘线路'
 
-      h2.addEventListener('click', (e: MouseEvent) => {
-        const target = e.target as HTMLElement
+      // ⭐ 真正打开弹窗的函数
+      const trigger = (target: HTMLElement) => {
         if (target.closest('a.header-anchor')) return
         modalRef.value?.open(others, h2.id)
+      }
+
+      // ===== 触摸设备：用 touchstart/touchend 直接响应，绕开 hover 模拟（解决移动端点两次） =====
+      let touchStartX = 0
+      let touchStartY = 0
+      let moved = false
+      let touchHandled = false  // 标记这次已由 touch 处理，阻止随后的 click 重复触发
+
+      h2.addEventListener('touchstart', (e: TouchEvent) => {
+        const t = e.touches[0]
+        touchStartX = t.clientX
+        touchStartY = t.clientY
+        moved = false
+      }, { passive: true })
+
+      h2.addEventListener('touchmove', (e: TouchEvent) => {
+        const t = e.touches[0]
+        // 移动超过 10px 视为滚动，不算点击
+        if (Math.abs(t.clientX - touchStartX) > 10 ||
+            Math.abs(t.clientY - touchStartY) > 10) {
+          moved = true
+        }
+      }, { passive: true })
+
+      h2.addEventListener('touchend', (e: TouchEvent) => {
+        if (moved) return  // 是滚动，不触发
+        // 阻止浏览器把这次触摸再模拟成 click（防双触发 & 绕过 hover 逻辑）
+        e.preventDefault()
+        touchHandled = true
+        setTimeout(() => (touchHandled = false), 500)
+        trigger(e.target as HTMLElement)
+      }, { passive: false })
+
+      // ===== 鼠标设备（PC）：正常 click =====
+      h2.addEventListener('click', (e: MouseEvent) => {
+        if (touchHandled) return  // 已由 touch 处理，跳过
+        trigger(e.target as HTMLElement)
       })
     }
   })

@@ -84,3 +84,10 @@ body.animate-on-load .VPFeatures .VPFeature:nth-child(3) {
     width: 100%;
   }
 }
+/* 只在支持 hover 的设备（鼠标）上应用 h2 悬停效果 */
+@media (hover: none) {
+  .vp-doc h2:hover {
+    /* 移动端不显示 hover 态 */
+    color: inherit;
+  }
+}

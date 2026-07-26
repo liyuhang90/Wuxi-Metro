@@ -36,7 +36,7 @@ const LINE_COLORS: Record<string, string> = {
   '2': '#00A738',
   '3': '#17AEF8',
   '4': '#A70984',
-  's1': '#F7941D'  // S1 暂用橙色，可自行修改
+  's1': '#E30718'  // S1 暂用橙色，可自行修改
 }
 
 function getColor(line: string): string {
