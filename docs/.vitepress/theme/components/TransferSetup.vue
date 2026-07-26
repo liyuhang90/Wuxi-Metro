@@ -8,7 +8,7 @@ import { onMounted, watch, nextTick, ref } from 'vue'
 import TransferModal from './TransferModal.vue'
 
 // ⭐ 已开通线路白名单（整条或部分开通的都算，具体站点用下面的黑名单细化）
-const AVAILABLE_LINES = ['1', '2', '3', '4',"s1"]
+const AVAILABLE_LINES = ['1', '2', '3', '4']
 
 // ⭐ 未开通站点黑名单：key = 线路号，value = 该线路上尚未开通的换乘站名称（关键字）
 // 用于处理"分段开通"的线路，例如 4 号线部分站点还在建设
