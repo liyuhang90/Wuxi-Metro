@@ -23,12 +23,13 @@ export default {
       'layout-bottom': () => [
         h(BackToTop),
         h(Announcement, {
-          version: '1.3.0',
+          version: '2.0.0',
           autoShow: true
         }, {
           // 公告内容作为插槽
           default: () => [
             h('ul', [
+              h('li', '2026-09-02: 更新了4号线二期工程的内容。'),
               h('li', '2026-09-02: 首页动画跳过的功能。'),
               h('li', '2026-07-24: 添加了站点换乘快速跳转功能。'),
               h('li', '2025-10-05: 修复了移动端无法打开公告栏的问题。'),
