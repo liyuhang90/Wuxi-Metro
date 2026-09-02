@@ -25,7 +25,7 @@ features:
   - icon:
       src: /计划.svg
     title: 更新计划
-    details: 完成4号线2期工程、5号线以及6号线的信息收录
+    details: 完成5号线以及6号线的信息收录
   - icon:
       src: /官网.svg
     title: 无锡地铁官网

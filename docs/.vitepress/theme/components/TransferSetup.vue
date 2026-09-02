@@ -14,7 +14,7 @@ const AVAILABLE_LINES = ['1', '2', '3', '4']
 // 用于处理"分段开通"的线路，例如 4 号线部分站点还在建设
 // 只要换乘站标题里包含这里列出的站名，该方向就不可换乘
 const UNAVAILABLE_STATIONS: Record<string, string[]> = {
-  '4': ['无锡新区站'],  // TODO: 换成 4 号线实际未开通的换乘站名
+  '线路（纯数字）': ['站名'],  // TODO: 换成 4 号线实际未开通的换乘站名
 }
 
 const route = useRoute()
