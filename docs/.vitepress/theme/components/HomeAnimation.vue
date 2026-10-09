@@ -44,7 +44,7 @@ const endAnimation = (skip = false) => {
   if (skip) {
 
     // 添加跳过状态
-    document.body.classList.add(
+    document.documentElement.classList.add(
       'animation-skip'
     )
 
@@ -53,7 +53,7 @@ const endAnimation = (skip = false) => {
 
 
   // 移除播放状态
-  document.body.classList.remove(
+  document.documentElement.classList.remove(
     'animate-on-load'
   )
 
@@ -110,14 +110,15 @@ const playAnimation = () => {
 
 
   // 清除旧状态
-  document.body.classList.remove(
+  document.documentElement.classList.remove(
     'animation-skip'
   )
 
 
 
   // 添加动画状态
-  document.body.classList.add(
+  // 构建后的首页已在 head 中添加此状态；重复添加不会重启动画。
+  document.documentElement.classList.add(
     'animate-on-load'
   )
 

@@ -6,6 +6,14 @@ export default defineConfig({
   description: "由个人整理的非官方无锡地铁信息合集",
   cleanUrls: true,
   lastUpdated: true,
+  transformHead({ pageData }) {
+    if (pageData.frontmatter.layout === 'home') {
+      // 在浏览器绘制首页前启用动画，避免静态 HTML 先完整显示一次。
+      return [
+        ['script', {}, "document.documentElement.classList.add('animate-on-load')"],
+      ]
+    }
+  },
   head: [
     ['link', { rel: 'icon', href: '/logo.svg' }],
     ['meta', { name: 'robots', content: 'index, follow' }], 
