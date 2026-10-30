@@ -1,7 +1,12 @@
 import { defineConfig } from 'vitepress'
 import metro_introSidebar from './sidebars/metro_intro.mts'
 import station_introSidebar from './sidebars/station_intro.mts'
+import { createSearchIntegration } from './search/build'
+const search = createSearchIntegration()
 export default defineConfig({
+  markdown: { config: search.markdown },
+  vite: { plugins: [search.plugin] },
+  buildEnd: search.buildEnd,
   title: "Made By Li",
   description: "由个人整理的非官方无锡地铁信息合集",
   cleanUrls: true,
@@ -29,27 +34,6 @@ export default defineConfig({
     docFooter: {
       prev: '上一页',
       next: '下一页',
-    },
-     search: {
-      provider: "local",
-      options: {
-        translations: {
-          button: {
-            buttonText: "搜索本页",
-            buttonAriaLabel: "搜索本页",
-          },
-          modal: {
-            noResultsText: "无结果",
-            resetButtonTitle: "清空输入",
-            displayDetails: "显示详细信息",
-            footer: {
-              selectText: "选择",
-              navigateText: "切换",
-              closeText: "关闭",
-            },
-          },
-        },
-      },
     },
     nav: [
       { text: '主页', link: '/' },

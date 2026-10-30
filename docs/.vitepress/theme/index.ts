@@ -11,6 +11,7 @@ import HomeAnimation from './components/HomeAnimation.vue'
 // 导入换乘功能组件
 import TransferSetup from './components/TransferSetup.vue'
 import TransferModal from './components/TransferModal.vue'
+import SearchLauncher from './components/search/SearchLauncher.vue'
 
 // 导入新的动画样式文件
 import './styles/HomeAnimations.css'
@@ -19,6 +20,7 @@ export default {
   extends: DefaultTheme,
   Layout: () => {
     return h(DefaultTheme.Layout, null, {
+      'nav-bar-content-before': () => h(SearchLauncher),
       // 在布局底部添加组件
       'layout-bottom': () => [
         h(BackToTop),
